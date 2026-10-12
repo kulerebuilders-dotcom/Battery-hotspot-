@@ -1,0 +1,130 @@
+package com.batteryhotspot
+
+import android.app.Activity
+import android.os.Bundle
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Color
+import android.view.Gravity
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
+
+class MainActivity : Activity() {
+
+    private lateinit var batteryText: TextView
+    private lateinit var statusText: TextView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        val layout = LinearLayout(this)
+        layout.orientation = LinearLayout.VERTICAL
+        layout.gravity = Gravity.CENTER
+        layout.setPadding(28, 32, 28, 32)
+        layout.setBackgroundColor(Color.rgb(245, 248, 255))
+
+        val title = TextView(this)
+        title.text = "BATTERY HOTSPOT"
+        title.textSize = 28f
+        title.setTextColor(Color.rgb(20, 70, 150))
+        title.gravity = Gravity.CENTER
+
+        batteryText = TextView(this)
+        batteryText.textSize = 24f
+        batteryText.setTextColor(Color.BLACK)
+        batteryText.gravity = Gravity.CENTER
+
+        statusText = TextView(this)
+        statusText.text =
+            "Welcome! Choose a battery-sharing mode."
+        statusText.textSize = 16f
+        statusText.setTextColor(Color.DKGRAY)
+        statusText.gravity = Gravity.CENTER
+
+        val shareButton = Button(this)
+        shareButton.text = "SHARE BATTERY"
+
+        shareButton.setOnClickListener {
+            statusText.text =
+                "Share mode selected. Power transfer requires compatible hardware."
+        }
+
+        val receiveButton = Button(this)
+        receiveButton.text = "RECEIVE BATTERY"
+
+        receiveButton.setOnClickListener {
+            statusText.text =
+                "Receive mode selected. Compatible wireless power hardware is required."
+        }
+
+        val refreshButton = Button(this)
+        refreshButton.text = "REFRESH BATTERY"
+
+        refreshButton.setOnClickListener {
+            updateBattery()
+        }
+
+        layout.addView(title)
+        layout.addView(
+            batteryText,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                100
+            )
+        )
+        layout.addView(
+            shareButton,
+            matchWidth()
+        )
+        layout.addView(
+            receiveButton,
+            matchWidth()
+        )
+        layout.addView(
+            refreshButton,
+            matchWidth()
+        )
+        layout.addView(
+            statusText,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                180
+            )
+        )
+
+        setContentView(layout)
+        updateBattery()
+    }
+
+    private fun matchWidth(): LinearLayout.LayoutParams {
+        return LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+    }
+
+    private fun updateBattery() {
+        val intent = registerReceiver(
+            null,
+            IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        )
+
+        val level = intent?.getIntExtra(
+            "level", -1
+        ) ?: -1
+
+        val scale = intent?.getIntExtra(
+            "scale", 100
+        ) ?: 100
+
+        if (level >= 0 && scale > 0) {
+            val percentage = level * 100 / scale
+            batteryText.text =
+                "Your Battery: $percentage%"
+        } else {
+            batteryText.text =
+                "Battery level unavailable"
+        }
+    }
+}
